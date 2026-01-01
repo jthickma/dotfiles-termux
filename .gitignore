@@ -1,0 +1,8 @@
+# Editor/OS noise
+.DS_Store
+*.swp
+*.bak
+
+# Zsh runtime
+.zsh_history
+.zcompdump*
