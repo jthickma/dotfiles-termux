@@ -6,18 +6,17 @@ OMZ_DIR="$HOME/.oh-my-zsh"
 
 echo "[*] Installing Termux dotfiles from $REPO_DIR"
 
-# --- Backup existing .zshrc ---
+# ---- zshrc ----
 if [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]]; then
   BACKUP="$HOME/.zshrc.bak.$(date +%s)"
   echo "[*] Backing up existing .zshrc to $BACKUP"
   cp "$HOME/.zshrc" "$BACKUP"
 fi
 
-# --- Install .zshrc (symlink) ---
 echo "[*] Linking zshrc"
 ln -sf "$REPO_DIR/zshrc" "$HOME/.zshrc"
 
-# --- Ensure Oh My Zsh is installed ---
+# ---- Oh My Zsh core ----
 if [[ ! -d "$OMZ_DIR" ]]; then
   echo "[*] Oh My Zsh not found, cloning"
   git clone https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_DIR"
@@ -25,12 +24,31 @@ else
   echo "[*] Oh My Zsh already present"
 fi
 
-# --- Sync Oh My Zsh custom directory ---
+# ---- Oh My Zsh custom ----
 echo "[*] Syncing Oh My Zsh custom files"
 mkdir -p "$OMZ_DIR/custom"
 rsync -a --delete \
   "$REPO_DIR/oh-my-zsh/custom/" \
   "$OMZ_DIR/custom/"
+
+# ---- Termux UI config (.termux) ----
+if [[ -d "$REPO_DIR/termux" ]]; then
+  echo "[*] Syncing ~/.termux"
+  mkdir -p "$HOME/.termux"
+  rsync -a --delete \
+    "$REPO_DIR/termux/" \
+    "$HOME/.termux/"
+  command -v termux-reload-settings >/dev/null 2>&1 && termux-reload-settings || true
+fi
+
+# ---- micro config ----
+if [[ -d "$REPO_DIR/micro" ]]; then
+  echo "[*] Syncing micro config"
+  mkdir -p "$HOME/.config/micro"
+  rsync -a --delete \
+    "$REPO_DIR/micro/" \
+    "$HOME/.config/micro/"
+fi
 
 echo "[✓] Installation complete"
 echo "→ Restart Termux or run: source ~/.zshrc"

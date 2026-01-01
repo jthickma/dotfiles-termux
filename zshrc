@@ -246,3 +246,37 @@ dl-tiktok() {
 # ---------- Syntax highlighting (load last) ----------
 ZSH_SYNTAX_HIGHLIGHTING="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 [[ -r "$ZSH_SYNTAX_HIGHLIGHTING" ]] && source "$ZSH_SYNTAX_HIGHLIGHTING"
+
+# --- dotfiles backup (dotbackup) ---
+# Backup current Termux dotfiles into ~/dotfiles-termux and commit/push.
+dotbackup() {
+  local repo="$HOME/dotfiles-termux"
+  [[ -d "$repo/.git" ]] || { echo "dotbackup: repo not found at $repo"; return 1; }
+
+  (
+    set -e
+    cd "$repo"
+
+    cp -f "$HOME/.zshrc" "$repo/zshrc"
+
+    mkdir -p "$repo/oh-my-zsh/custom"
+    cp -a "$HOME/.oh-my-zsh/custom/." "$repo/oh-my-zsh/custom/"
+
+    mkdir -p "$repo/termux"
+    cp -a "$HOME/.termux/." "$repo/termux/" 2>/dev/null || true
+
+    mkdir -p "$repo/micro"
+    cp -a "$HOME/.config/micro/." "$repo/micro/" 2>/dev/null || true
+
+    git add -A
+    if git diff --cached --quiet; then
+      echo "dotbackup: no changes"
+      exit 0
+    fi
+
+    git commit -m "Snapshot $(date -Iseconds)"
+    git push
+    echo "dotbackup: pushed"
+  )
+}
+# --- end dotbackup ---
